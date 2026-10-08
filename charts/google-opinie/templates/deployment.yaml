@@ -1,0 +1,73 @@
+{{- if not .Values.config.allowedOrigins }}
+{{- fail "config.allowedOrigins is required (the websites that embed the widget)" }}
+{{- end }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+  labels: {{- include "google-opinie.labels" . | nindent 4 }}
+spec:
+  # One replica on purpose: the call budget is counted per process.
+  replicas: 1
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels: {{- include "google-opinie.selector" . | nindent 6 }}
+  template:
+    metadata:
+      labels: {{- include "google-opinie.selector" . | nindent 8 }}
+      annotations:
+        code-checksum: {{ .Files.Glob "server/*.py" | toString | sha256sum | trunc 12 }}
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: proxy
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["python", "/app/opinie_proxy.py"]
+          env:
+            - { name: PYTHONDONTWRITEBYTECODE, value: "1" }
+            - { name: PYTHONUNBUFFERED, value: "1" }
+            - { name: PORT, value: "8080" }
+            - { name: ALLOWED_ORIGINS, value: {{ join "," .Values.config.allowedOrigins | quote }} }
+            - { name: LANGUAGE, value: {{ .Values.config.language | quote }} }
+            - { name: REGION, value: {{ .Values.config.region | quote }} }
+            - { name: DAILY_LIMIT, value: {{ .Values.config.dailyLimit | int | quote }} }
+            - { name: MINUTE_LIMIT, value: {{ .Values.config.minuteLimit | int | quote }} }
+          envFrom:
+            # GOOGLE_PLACES_API_KEY and PLACE_ID. Not optional: without them
+            # the proxy exits and the pod shows CreateContainerConfigError.
+            - secretRef: { name: {{ .Values.existingSecret }} }
+          ports:
+            - { name: http, containerPort: 8080 }
+          readinessProbe:
+            httpGet: { path: /healthz, port: http }
+            periodSeconds: 15
+          livenessProbe:
+            httpGet: { path: /healthz, port: http }
+            initialDelaySeconds: 5
+            periodSeconds: 30
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: ["ALL"] }
+          resources: {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - { name: kod, mountPath: /app, readOnly: true }
+      volumes:
+        - name: kod
+          configMap: { name: {{ .Release.Name }}-kod }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}
+  labels: {{- include "google-opinie.labels" . | nindent 4 }}
+spec:
+  selector: {{- include "google-opinie.selector" . | nindent 4 }}
+  ports:
+    - { name: http, port: 80, targetPort: http }

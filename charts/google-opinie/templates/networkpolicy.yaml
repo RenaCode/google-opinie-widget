@@ -1,0 +1,53 @@
+{{- if .Values.networkPolicy.enabled }}
+# Ingress: only Traefik may reach the proxy port.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Release.Name }}
+  labels: {{- include "google-opinie.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels: {{- include "google-opinie.selector" . | nindent 6 }}
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Values.networkPolicy.traefik.namespace }}
+          podSelector:
+            matchLabels: {{- toYaml .Values.networkPolicy.traefik.podLabels | nindent 14 }}
+      ports:
+        - { protocol: TCP, port: 8080 }
+{{- if .Values.networkPolicy.egress.enabled }}
+---
+# Egress: DNS + HTTPS anywhere except the ranges in networkPolicy.egress.deny.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Release.Name }}-egress
+  labels: {{- include "google-opinie.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels: {{- include "google-opinie.selector" . | nindent 6 }}
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - { protocol: UDP, port: 53 }
+        - { protocol: TCP, port: 53 }
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            {{- with .Values.networkPolicy.egress.deny }}
+            except: {{- toYaml . | nindent 14 }}
+            {{- end }}
+      ports:
+        - { protocol: TCP, port: 443 }
+{{- end }}
+{{- end }}

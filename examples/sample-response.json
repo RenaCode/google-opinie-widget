@@ -1,0 +1,38 @@
+{
+  "name": "Example Business",
+  "rating": 4.8,
+  "count": 37,
+  "url": "https://maps.google.com/?cid=0",
+  "reviews": [
+    {
+      "author": "Jan K.",
+      "authorUri": "",
+      "authorPhoto": "",
+      "rating": 5,
+      "text": "Przykładowa opinia — szybko, sprawnie i uczciwie. Polecam.",
+      "when": "2 miesiące temu",
+      "reviewUri": "",
+      "flagUri": ""
+    },
+    {
+      "author": "Anna W.",
+      "authorUri": "",
+      "authorPhoto": "",
+      "rating": 4,
+      "text": "Przykładowa opinia — profesjonalna obsługa i konkretna wycena.",
+      "when": "5 miesięcy temu",
+      "reviewUri": "",
+      "flagUri": ""
+    },
+    {
+      "author": "Marek Z.",
+      "authorUri": "",
+      "authorPhoto": "",
+      "rating": 5,
+      "text": "Przykładowa opinia — korzystam od lat, zawsze na czas.",
+      "when": "rok temu",
+      "reviewUri": "",
+      "flagUri": ""
+    }
+  ]
+}
