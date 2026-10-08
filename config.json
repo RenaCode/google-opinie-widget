@@ -1,0 +1,8 @@
+{
+  "cid": "0000000000000000000",
+  "name": "Example Business",
+  "lang": "pl",
+  "country": "pl",
+  "max_reviews": 40,
+  "min_stars_default": 5
+}

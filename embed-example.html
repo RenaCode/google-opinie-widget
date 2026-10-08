@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reviews widget preview</title>
+<style>
+  body{font-family:system-ui,sans-serif;background:#121419;color:#e7e9ee;margin:0;padding:48px 16px}
+  :root{--accent:#e8900a;--text:#e7e9ee;--muted:#9aa1b0;--surface:#171a21;--line:#272b35;--accent-soft:#2a2112}
+  section{max-width:1040px;margin:0 auto}
+  h2{text-align:center;font-size:2rem}
+  .btn{display:inline-block;padding:12px 22px;border-radius:10px;background:var(--accent);color:#2a1c00;font-weight:700;text-decoration:none}
+</style>
+</head>
+<body>
+<section>
+  <h2>Opinie klientów</h2>
+
+  <!-- Widget container. data-stars="5" => only 5-star reviews. -->
+  <!-- The content inside is the FALLBACK: shown only if the data fails to load. -->
+  <div id="google-opinie" data-stars="5" data-max="6" data-src="../data/reviews.json">
+    <p style="text-align:center;color:var(--muted)">Ładowanie opinii z Google…</p>
+  </div>
+</section>
+
+<!-- The only thing that goes on the workshop's site: this one line. -->
+<script src="../widget/opinie.js" defer></script>
+</body>
+</html>
