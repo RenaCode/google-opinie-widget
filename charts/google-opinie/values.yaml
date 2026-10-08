@@ -1,0 +1,57 @@
+# Google reviews proxy. The widget on the website calls
+#   GET https://<ingress host>/v1/reviews
+# and this pod asks the Places API (New) live. Nothing is cached (Google Maps
+# Platform terms), so the knobs below are about cost and abuse, not freshness.
+
+image:
+  # Plain python, stdlib only, code from a ConfigMap (templates/configmap.yaml)
+  # - no private image to build or rotate.
+  repository: python
+  # 3.12-slim by digest, read from Docker Hub 2026-10-02.
+  tag: "3.12-slim@sha256:dddfd7e07f9d15aeeca61529320492139d21cac7f0070c00609243e51e4e0016"
+  pullPolicy: IfNotPresent
+
+# Secret created by hand in the cluster (never in git):
+#   kubectl create secret generic google-opinie \
+#     --from-literal=GOOGLE_PLACES_API_KEY=... --from-literal=PLACE_ID=ChIJ...
+existingSecret: google-opinie
+
+config:
+  # Websites allowed to call the proxy (CORS). Requests from anywhere else are
+  # refused before they reach Google, so they cost nothing. REQUIRED.
+  allowedOrigins: []
+  #  - https://example.com
+  #  - https://www.example.com
+  language: pl
+  region: PL
+  # Upstream calls per UTC day / per minute. Counters live in the pod and reset
+  # on restart - the hard ceiling is the API quota in Google Cloud (README).
+  # Place Details with reviews = "Enterprise + Atmosphere" SKU: 1000 calls/month
+  # free, then billed per 1000.
+  dailyLimit: 300
+  minuteLimit: 20
+
+ingress:
+  enabled: true
+  className: traefik
+  # REQUIRED: the proxy's public host name, e.g. reviews.example.com.
+  host: ""
+  clusterIssuer: letsencrypt-prod
+  # Separate router on port 80 answering 308 -> https.
+  redirectToHttps: true
+
+networkPolicy:
+  enabled: true
+  traefik:
+    namespace: kube-system
+    podLabels:
+      app.kubernetes.io/name: traefik
+  egress:
+    enabled: true
+    # Private ranges routed from the node that the pod must NOT reach.
+    # Everything else (the Places API) stays reachable.
+    deny: []
+
+resources:
+  requests: { cpu: 5m, memory: 24Mi }
+  limits: { memory: 64Mi }

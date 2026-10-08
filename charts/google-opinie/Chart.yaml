@@ -1,0 +1,6 @@
+apiVersion: v2
+name: google-opinie
+description: Proxy for the Google reviews widget - holds the Places API key, forwards one live call per page view, stores nothing
+type: application
+version: 0.1.0
+appVersion: "1"

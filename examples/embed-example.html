@@ -16,14 +16,14 @@
 <section>
   <h2>Opinie klientów</h2>
 
-  <!-- Widget container. data-stars="5" => only 5-star reviews. -->
+  <!-- Widget container. In production data-src points to the proxy: https://YOUR-PROXY/v1/reviews -->
   <!-- The content inside is the FALLBACK: shown only if the data fails to load. -->
-  <div id="google-opinie" data-stars="5" data-max="6" data-src="../data/reviews.json">
+  <div id="google-opinie" data-src="sample-response.json">
     <p style="text-align:center;color:var(--muted)">Ładowanie opinii z Google…</p>
   </div>
 </section>
 
-<!-- The only thing that goes on the workshop's site: this one line. -->
+<!-- The only thing that goes on the site: this one line. -->
 <script src="../widget/opinie.js" defer></script>
 </body>
 </html>

@@ -1,0 +1,11 @@
+# Proxy code as a ConfigMap - stdlib python, no image to build.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-kod
+  labels: {{- include "google-opinie.labels" . | nindent 4 }}
+data:
+{{- range $path, $_ := .Files.Glob "server/*.py" }}
+  {{ base $path }}: |
+{{ $.Files.Get $path | indent 4 }}
+{{- end }}

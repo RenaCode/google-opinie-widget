@@ -1,6 +1,6 @@
 .venv*/
 __pycache__/
 *.pyc
-# local secrets / private config on the host
-deploy/docker/.env
-deploy/docker/config.json
+# private deployment values (host, origins) - keep them out of this public repo
+values.local.yaml
+*.secret.yaml
